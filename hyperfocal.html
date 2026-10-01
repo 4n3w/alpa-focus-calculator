@@ -1,0 +1,449 @@
+<!doctype html>
+<html lang="en">
+<head>
+<meta charset="utf-8">
+<meta name="viewport" content="width=device-width, initial-scale=1, viewport-fit=cover">
+<style>html{color-scheme:light}body{margin:0}img{max-width:100%}[hidden]{display:none!important}</style>
+<title>Alpa Hyperfocal Table</title>
+<link rel="preconnect" href="https://fonts.googleapis.com">
+<link rel="preconnect" href="https://fonts.gstatic.com" crossorigin>
+<link rel="stylesheet" href="https://fonts.googleapis.com/css2?family=Familjen+Grotesk:wght@500;600;700&family=IBM+Plex+Sans:wght@400;500;600&family=IBM+Plex+Mono:wght@400;500&display=swap">
+<style>
+/* Layout: same instrument panel as the Alpa Stitch Calculator — controls left, readout right; one column on phones.
+   Palette: anodized-aluminium neutrals with a cool bias, one amber index-mark accent. */
+:root {
+  --bg: #eef0f2;
+  --panel: #f8f9fa;
+  --fg: #1c2127;
+  --muted: #5d6671;
+  --line: #d3d8de;
+  --accent: #c2560f;
+  --accent-soft: #f6e3d4;
+  --frame: #8a96a3;
+  --ok: #2f7a4b;
+  --warn: #a3620a;
+  --warn-soft: #f4e8d2;
+  --bad: #b3261e;
+  --info: #2a62b8;
+  --font-display: "Familjen Grotesk", "Helvetica Neue", Arial, sans-serif;
+  --font-body: "IBM Plex Sans", "Helvetica Neue", Arial, sans-serif;
+  --font-mono: "IBM Plex Mono", ui-monospace, SFMono-Regular, Menlo, monospace;
+}
+@media (prefers-color-scheme: dark) {
+  :root:not([data-theme="light"]) {
+    --bg: #15181c; --panel: #1d2126; --fg: #e6e9ed; --muted: #97a1ac; --line: #313840;
+    --accent: #f08a45; --accent-soft: #3a2618; --frame: #6d7884;
+    --ok: #6cc38e; --warn: #e3a547; --warn-soft: #33281a; --bad: #f07a70; --info: #7aa7ec; color-scheme: dark;
+  }
+}
+:root[data-theme="dark"] {
+  --bg: #15181c; --panel: #1d2126; --fg: #e6e9ed; --muted: #97a1ac; --line: #313840;
+  --accent: #f08a45; --accent-soft: #3a2618; --frame: #6d7884;
+  --ok: #6cc38e; --warn: #e3a547; --warn-soft: #33281a; --bad: #f07a70; --info: #7aa7ec; color-scheme: dark;
+}
+* { box-sizing: border-box; }
+body { background: var(--bg); color: var(--fg); font-family: var(--font-body); font-size: 15px; line-height: 1.5; }
+.wrap { max-width: 1180px; margin: 0 auto; padding-inline: 20px; padding-block: 28px 48px; }
+header { display: flex; flex-wrap: wrap; align-items: baseline; justify-content: space-between; gap: 8px 24px; margin-bottom: 22px; }
+h1 { font-family: var(--font-display); font-weight: 700; font-size: clamp(1.6rem, 3.4vw, 2.2rem); letter-spacing: -0.01em; margin: 0; text-wrap: balance; }
+.sub { color: var(--muted); margin: 0; font-size: 0.93rem; }
+.grid { display: grid; grid-template-columns: minmax(0, 320px) minmax(0, 1fr); gap: 20px; align-items: start; }
+@media (max-width: 860px) { .grid { grid-template-columns: minmax(0, 1fr); } }
+.panel { background: var(--panel); border: 1px solid var(--line); border-radius: 10px; padding: 18px; min-width: 0; }
+.controls { display: grid; gap: 18px; }
+.field { display: grid; gap: 8px; min-width: 0; }
+.label { font-size: 0.72rem; font-weight: 600; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); display: flex; justify-content: space-between; gap: 8px; }
+.label .val { font-family: var(--font-mono); letter-spacing: 0; text-transform: none; color: var(--fg); font-weight: 500; font-size: 0.85rem; }
+.seg { display: flex; flex-wrap: wrap; gap: 6px; }
+.seg input { position: absolute; opacity: 0; pointer-events: none; }
+.seg label { cursor: pointer; border: 1px solid var(--line); border-radius: 6px; padding: 7px 11px; font-size: 0.88rem; background: var(--bg); color: var(--fg); display: grid; line-height: 1.25; flex: 1 1 auto; text-align: center; min-width: 0; }
+.seg label small { color: var(--muted); font-family: var(--font-mono); font-size: 0.72rem; }
+.seg input:checked + label { border-color: var(--accent); background: var(--accent-soft); box-shadow: inset 0 0 0 1px var(--accent); }
+.seg input:focus-visible + label { outline: 2px solid var(--accent); outline-offset: 2px; }
+.row { display: flex; gap: 8px; align-items: center; }
+input[type=number] { width: 88px; font-family: var(--font-mono); font-size: 0.9rem; padding: 7px 8px; border: 1px solid var(--line); border-radius: 6px; background: var(--bg); color: var(--fg); }
+input[type=number]:focus-visible { outline: 2px solid var(--accent); outline-offset: 1px; }
+input[type=range] { width: 100%; accent-color: var(--accent); }
+.scale { display: flex; justify-content: space-between; font-family: var(--font-mono); font-size: 0.7rem; color: var(--muted); }
+.check { display: flex; align-items: center; gap: 8px; font-size: 0.88rem; cursor: pointer; }
+.check input { accent-color: var(--accent); width: 16px; height: 16px; }
+.check small { color: var(--muted); font-family: var(--font-mono); font-size: 0.72rem; }
+.hint { font-size: 0.8rem; color: var(--muted); margin: 0; }
+
+.readout { display: grid; gap: 18px; min-width: 0; }
+.hero { display: grid; gap: 4px; }
+.hero .big { font-family: var(--font-display); font-weight: 600; font-size: clamp(1.9rem, 5vw, 2.9rem); letter-spacing: -0.015em; font-variant-numeric: tabular-nums; line-height: 1.1; }
+.hero .big span { color: var(--muted); font-weight: 500; font-size: 0.6em; }
+.hero .meta { color: var(--muted); font-family: var(--font-mono); font-size: 0.85rem; }
+.stats { display: grid; grid-template-columns: repeat(auto-fit, minmax(150px, 1fr)); gap: 1px; background: var(--line); border: 1px solid var(--line); border-radius: 8px; overflow: hidden; }
+.stat { background: var(--panel); padding: 12px 14px; display: grid; gap: 2px; min-width: 0; }
+.stat .k { font-size: 0.7rem; letter-spacing: 0.08em; text-transform: uppercase; color: var(--muted); font-weight: 600; }
+.stat .v { font-family: var(--font-mono); font-size: 1.05rem; font-variant-numeric: tabular-nums; }
+.stat .v small { color: var(--muted); font-size: 0.78rem; }
+h2 { font-family: var(--font-display); font-weight: 600; font-size: 1.05rem; margin: 0 0 10px; }
+.diagram { width: 100%; height: auto; display: block; }
+.diagram-box { background: var(--bg); border: 1px solid var(--line); border-radius: 8px; padding: 10px; }
+.caption { font-size: 0.78rem; color: var(--muted); margin: 6px 0 0; }
+
+.table-scroll { overflow-x: auto; }
+table { width: 100%; border-collapse: collapse; font-size: 0.84rem; font-variant-numeric: tabular-nums; }
+th, td { text-align: right; padding: 0; border-bottom: 1px solid var(--line); white-space: nowrap; }
+th { font-size: 0.7rem; letter-spacing: 0.05em; color: var(--muted); font-weight: 600; padding: 8px 8px; font-family: var(--font-mono); }
+th:first-child, td:first-child { text-align: left; position: sticky; left: 0; background: var(--panel); }
+td:first-child { padding: 8px 10px 8px 0; font-weight: 500; }
+td:first-child small { display: block; color: var(--muted); font-family: var(--font-mono); font-size: 0.72rem; font-weight: 400; }
+td button { all: unset; box-sizing: border-box; display: block; width: 100%; padding: 8px 8px; text-align: right; font-family: var(--font-mono); cursor: pointer; border-radius: 4px; color: var(--fg); }
+td button:hover { background: var(--accent-soft); }
+td button:focus-visible { outline: 2px solid var(--accent); outline-offset: -2px; }
+td button.diffg { background: color-mix(in srgb, var(--warn) var(--d), transparent); }
+.brace-row th { border-bottom: none; padding: 4px 4px 0; }
+.brace-cell { text-align: center !important; color: var(--warn); }
+.brace-label { display: block; font-family: var(--font-body); font-size: 0.7rem; font-weight: 600; letter-spacing: 0.04em; white-space: nowrap; margin-bottom: 3px; }
+.brace { display: block; position: relative; height: 9px; margin: 0 6px; border: 1.5px solid var(--warn); border-bottom: none; border-radius: 8px 8px 0 0; }
+.brace::after { content: ""; position: absolute; left: 50%; top: -5px; width: 7px; height: 7px; margin-left: -4.5px; background: var(--panel); border-left: 1.5px solid var(--warn); border-top: 1.5px solid var(--warn); transform: rotate(45deg); }
+th.in-blur { color: var(--warn); }
+td button.max { outline: 1.5px solid var(--info); outline-offset: -3px; }
+td button.max:focus-visible { outline: 2px solid var(--accent); }
+td button.sel { background: var(--accent); color: var(--panel); font-weight: 500; }
+td .na { display: block; padding: 8px; color: var(--line); text-align: center; font-family: var(--font-mono); }
+.legend { display: flex; flex-wrap: wrap; gap: 6px 16px; font-size: 0.78rem; color: var(--muted); margin-top: 10px; }
+.legend i { display: inline-block; width: 12px; height: 12px; border-radius: 3px; vertical-align: -2px; margin-right: 6px; }
+.notes ul { margin: 0; padding-left: 1.1em; display: grid; gap: 6px; color: var(--muted); font-size: 0.84rem; max-width: 72ch; }
+@media (prefers-reduced-motion: reduce) { * { transition: none !important; } }
+
+.toolnav { font-size: 0.85rem; } .toolnav a { color: var(--accent); text-decoration: none; font-weight: 500; } .toolnav a:hover { text-decoration: underline; }
+</style>
+</head>
+<body>
+
+
+<div class="wrap">
+  <header>
+    <h1>Alpa Hyperfocal Table</h1>
+    <p class="sub">Hyperfocal distance for every Alpagon and Alpar at every stop, sized to your back's pixels</p>
+    <nav class="toolnav"><a href="index.html">Stitch calculator →</a></nav>
+  </header>
+
+  <div class="grid">
+    <form class="panel controls" id="controls" onsubmit="return false">
+      <div class="field">
+        <div class="label">Digital back</div>
+        <div class="seg" id="backSeg"></div>
+      </div>
+
+      <div class="field">
+        <div class="label">Sharpness standard</div>
+        <div class="seg" id="cocSeg">
+          <input type="radio" name="coc" id="coc-px" value="px" checked><label for="coc-px">Pixels<small>n × pitch</small></label>
+          <input type="radio" name="coc" id="coc-diag" value="diag"><label for="coc-diag">Film<small>diag ÷ 1500</small></label>
+          <input type="radio" name="coc" id="coc-custom" value="custom"><label for="coc-custom">Custom<small>µm</small></label>
+        </div>
+        <div id="pxField" class="field">
+          <div class="label">Pixels per blur circle <span class="val" id="pxVal"></span></div>
+          <input type="range" id="pxMult" min="1" max="4" step="0.5" value="2">
+          <div class="scale"><span>1 · pixel-peeping</span><span>4 · looser</span></div>
+        </div>
+        <div id="customField" class="row" hidden>
+          <input type="number" id="customCoc" min="2" max="100" step="0.5" value="20" aria-label="Circle of confusion in microns">
+          <span class="hint">µm circle of confusion</span>
+        </div>
+        <p class="hint" id="cocHint"></p>
+      </div>
+
+      <div class="field">
+        <div class="label">Light</div>
+        <div class="seg" id="wlSeg"></div>
+        <p class="hint">Sets the diffraction check. IR focus shift is not modelled; confirm focus through the filter.</p>
+      </div>
+
+      <div class="field">
+        <div class="label">Stops</div>
+        <div class="seg" id="stopSeg">
+          <input type="radio" name="stops" id="st-full" value="full" checked><label for="st-full">Full</label>
+          <input type="radio" name="stops" id="st-third" value="third"><label for="st-third">Thirds</label>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">Alpagon 40 focusing</div>
+        <label class="check"><input type="checkbox" id="hpf40"> 32 mm-marked HPF ring <small>close focus 1.16 ft</small></label>
+        <p class="hint">Andrew's lens only: his 40 is fitted with the 32 mm's HPF ring by mistake. Leave this off for a correctly fitted 40.</p>
+      </div>
+
+      <div class="field">
+        <div class="label">Units</div>
+        <div class="seg" id="unitSeg">
+          <input type="radio" name="units" id="u-m" value="m" checked><label for="u-m">Metric<small>metres</small></label>
+          <input type="radio" name="units" id="u-ft" value="ft"><label for="u-ft">Imperial<small>feet</small></label>
+        </div>
+      </div>
+
+      <div class="field">
+        <div class="label">Focus distance <span class="val" id="focusVal"></span></div>
+        <div class="row">
+          <input type="number" id="focus" min="0.3" max="3000" step="0.1" value="" placeholder="hyperfocal" aria-label="Focus distance">
+          <span class="hint" id="focusHint">metres, blank = hyperfocal</span>
+        </div>
+      </div>
+    </form>
+
+    <section class="readout" aria-live="polite">
+      <div class="panel hero">
+        <div class="big" id="outH"></div>
+        <div class="meta" id="outMeta"></div>
+      </div>
+
+      <div class="stats" id="stats"></div>
+
+      <div class="panel">
+        <h2>Depth of field</h2>
+        <div class="diagram-box"><svg class="diagram" id="dof" role="img" aria-label="Depth of field on a distance scale"></svg></div>
+        <p class="caption">Log distance scale. Grey on the left is closer than the lens can focus. The shaded band is where focus blur stays under c; the orange mark is where the lens is focused. Hatching appears once diffraction passes c: it softens every distance equally, so it covers the whole scale rather than changing where the band sits.</p>
+      </div>
+
+      <div class="panel">
+        <h2 id="tableTitle">Hyperfocal distance (m), every lens and stop</h2>
+        <div class="table-scroll">
+          <table id="table"><thead></thead><tbody></tbody></table>
+        </div>
+        <div class="legend">
+          <span><i style="background:var(--accent)"></i>Selected, shown above</span>
+          <span><i style="width:44px;background:linear-gradient(90deg, color-mix(in srgb, var(--warn) 4%, transparent), color-mix(in srgb, var(--warn) 55%, transparent))"></i>Diffraction, light to heavy (Airy disk ÷ c)</span>
+          <span><i style="box-shadow:inset 0 0 0 1.5px var(--info)"></i>Widest aperture</span>
+        </div>
+      </div>
+
+      <div class="panel notes">
+        <h2>Notes</h2>
+        <ul>
+          <li>The circle of confusion (c) is the largest blur spot that still reads as a sharp point. A point outside the plane of focus is recorded as a small disc; while that disc stays smaller than c, it looks in focus. A smaller c is a stricter standard and gives less depth of field.</li>
+          <li>Hyperfocal H = f² ÷ (N × c) + f. Focused at H, everything from H ÷ 2 to infinity is within the circle of confusion c.</li>
+          <li>The pixel standard ties sharpness to the back: 2 × pixel pitch is a common choice for high-resolution files viewed large or at 100%. The classic diagonal ÷ 1500 standard suits a normal print at normal distance and is much more forgiving.</li>
+          <li>Diffraction uses the Airy disk diameter to its first dark ring, 2.44 × wavelength × N. Most of the light sits in a much smaller central peak, so this is a conservative early warning: softening comes on gradually, and sharpening recovers much of it at the first tier.</li>
+          <li>The Film standard is the film-era convention that lens depth-of-field scales are engraved for, scaled here to the sensor diagonal.</li>
+          <li>Maximum apertures, effective focal lengths and close-focus distances are Alpa's published figures for the current lenses in aperture units. The maths uses the effective focal length (the 40 is 41.85 mm). A different focusing mount or an older lens version can focus differently. Minimum apertures: f/32 for the 40 and f/45 for the 90 in Copal 0 shutters; the other lenses are shown to f/22 until their minimum is confirmed.</li>
+          <li>The 32 mm-marked HPF ring option applies only to Andrew's 40, which has the wrong HPF ring fitted; it uses his measured 1.16 ft (0.35 m) close focus.</li>
+          <li>Distances are measured from the lens's front principal point, so treat short distances as approximate. Helical scales may not match.</li>
+          <li>Not an official Alpa tool. Check your own setup before relying on these numbers.</li>
+        </ul>
+      </div>
+    </section>
+  </div>
+</div>
+
+<script>
+const BACKS = {
+  iq350:  { name: "IQ3 50",     mm: [43.9, 32.9], pitch: 5.3 },
+  iq3100: { name: "IQ3 100",    mm: [53.7, 40.4], pitch: 4.6 },
+  iq4150: { name: "IQ4 150",    mm: [53.4, 40.0], pitch: 3.76 },
+  cfv50:  { name: "CFV-50c",    mm: [43.8, 32.9], pitch: 5.3 },
+  cfv250: { name: "CFV II 50C", mm: [43.8, 32.9], pitch: 5.3 },
+  cfv100: { name: "CFV 100C",   mm: [43.8, 32.9], pitch: 3.76 }
+};
+const LENSES = {
+  a23:  { name: "Alpagon 23",  f: 23,  efl: 23.82,  max: 5.6, mfd: 0.25 },
+  a32:  { name: "Alpagon 32",  f: 32,  efl: 33.09,  max: 4,   mfd: 0.40 },
+  a40:  { name: "Alpagon 40",  f: 40,  efl: 41.85,  max: 4,   min: 32, mfd: 0.50 },
+  a50:  { name: "Alpagon 50",  f: 50,  efl: 51.68,  max: 4,   mfd: 0.80 },
+  a70:  { name: "Alpagon 70",  f: 70,  efl: 70.00,  max: 5.6, mfd: 0.80 },
+  a90:  { name: "Alpagon 90",  f: 90,  efl: 90.00,  max: 5.6, min: 45, mfd: 1.30 },
+  a138: { name: "Alpagon 138", f: 138, efl: 137.80, max: 6.5, mfd: 1.00 },
+  a180: { name: "Alpar 180",   f: 180, efl: 179.55, max: 5.6, mfd: 4.00 }
+};
+const WAVES = {
+  vis: { name: "Visible", nm: 550, sub: "550 nm" },
+  r590: { name: "590", nm: 590, sub: "IR filter" },
+  r720: { name: "720", nm: 720, sub: "IR filter" },
+  r850: { name: "850", nm: 850, sub: "IR filter" }
+};
+const FULL = [4, 5.6, 8, 11, 16, 22, 32, 45];
+const THIRD = [4, 4.5, 5, 5.6, 6.3, 7.1, 8, 9, 10, 11, 13, 14, 16, 18, 20, 22, 25, 29, 32, 36, 40, 45];
+// exact values behind the marked stops, so the maths uses the real aperture
+const EXACT = n => Math.pow(2, Math.round(Math.log2(n) * 6) / 6);
+const FF_DIAG = Math.hypot(36, 24);
+
+const state = { hpf40: false, units: "m", back: "iq3100", coc: "px", pxMult: 2, custom: 20, wave: "vis", stops: "full", lens: "a40", N: 11, focus: null };
+
+const $ = id => document.getElementById(id);
+function seg(el, name, items, sel, sub) {
+  el.innerHTML = Object.entries(items).map(([k, v]) =>
+    `<input type="radio" name="${name}" id="${name}-${k}" value="${k}"${k === sel ? " checked" : ""}>` +
+    `<label for="${name}-${k}">${v.name}${sub ? `<small>${sub(v)}</small>` : ""}</label>`).join("");
+}
+seg($("backSeg"), "back", BACKS, state.back, b => `${b.pitch} µm`);
+seg($("wlSeg"), "wave", WAVES, state.wave, w => w.sub);
+
+function cocUm() {
+  const b = BACKS[state.back];
+  if (state.coc === "px") return state.pxMult * b.pitch;
+  if (state.coc === "diag") return Math.hypot(b.mm[0], b.mm[1]) / 1500 * 1000;
+  return state.custom;
+}
+function stopList(lens) {
+  const base = state.stops === "full" ? FULL : THIRD;
+  const list = base.filter(n => n >= lens.max - 0.05 && n <= (lens.min || 22) + 0.05);
+  if (!list.length || Math.abs(list[0] - lens.max) > 0.05) list.unshift(lens.max);
+  return list;
+}
+function allStops() {
+  const set = new Set();
+  Object.values(LENSES).forEach(l => stopList(l).forEach(n => set.add(n)));
+  return [...set].sort((a, b) => a - b);
+}
+const closeFocus = l => (l === LENSES.a40 && state.hpf40 ? 1.16 * 0.3048 : l.mfd);
+const exactN = n => (Math.abs(n - 6.5) < 0.01 ? 6.5 : EXACT(n));
+function hyper(f, N, cUm) { return (f * f) / (exactN(N) * cUm / 1000) + f; } // mm
+const airy = N => 2.44 * (WAVES[state.wave].nm / 1000) * exactN(N); // µm
+
+const UNIT = () => state.units === "ft" ? { per: 304.8, name: "ft", long: "feet" } : { per: 1000, name: "m", long: "metres" };
+function fmtM(mm) {
+  const m = mm / UNIT().per;
+  if (!isFinite(m)) return "∞";
+  if (m < 1) return m.toFixed(2);
+  if (m < 10) return m.toFixed(1);
+  return Math.round(m).toString();
+}
+const fmtN = n => (Number.isInteger(n) ? n : n.toFixed(1)).toString();
+
+function render() {
+  const b = BACKS[state.back], l = LENSES[state.lens];
+  const c = cocUm();
+  // keep the selection on a stop this lens offers
+  const ls = stopList(l);
+  if (!ls.some(n => Math.abs(n - state.N) < 0.01)) {
+    state.N = ls.reduce((best, n) => Math.abs(n - state.N) < Math.abs(best - state.N) ? n : best, ls[0]);
+  }
+
+  $("pxField").hidden = state.coc !== "px";
+  $("customField").hidden = state.coc !== "custom";
+  $("pxVal").textContent = `${state.pxMult} px`;
+  $("cocHint").textContent = `Circle of confusion: ${c.toFixed(1)} µm on the ${b.name}.`;
+
+  const F = l.efl, mfdMm = closeFocus(l) * 1000;
+  const H = hyper(F, state.N, c);
+  const asked = state.focus ? state.focus * UNIT().per : H;
+  const tooClose = asked < mfdMm;
+  const s = Math.max(asked, mfdMm);
+  const near = s * (H - F) / (H + s - 2 * F);
+  const far = s >= H ? Infinity : s * (H - F) / (H - s);
+  const a = airy(state.N);
+  const diag = Math.hypot(b.mm[0], b.mm[1]);
+
+  const u = UNIT();
+  $("focusVal").textContent = state.focus ? `${state.focus} ${u.name}` : "hyperfocal";
+  $("focusHint").textContent = tooClose
+    ? `Closer than the ${l.name} focuses; using its ${fmtM(mfdMm)} ${u.name} close focus.`
+    : `${u.long}, blank = hyperfocal`;
+  $("focusHint").style.color = tooClose ? "var(--warn)" : "";
+  $("tableTitle").textContent = `Hyperfocal distance (${u.name}), every lens and stop`;
+  $("outH").innerHTML = `${fmtM(H)} <span>${u.name} hyperfocal</span>`;
+  $("outMeta").textContent = `${l.name} at f/${fmtN(state.N)} · ${b.name} · c = ${c.toFixed(1)} µm · ${WAVES[state.wave].nm} nm`;
+
+  const ratio = a / c;
+  $("stats").innerHTML = [
+    ["Focused at", `${fmtM(s)} <small>${u.name}</small>`],
+    ["Near limit", `${fmtM(near)} <small>${u.name}</small>`],
+    ["Far limit", far === Infinity ? "∞" : `${fmtM(far)} <small>${u.name}</small>`],
+    ["Airy disk", `${a.toFixed(1)} <small>µm · ${(a / b.pitch).toFixed(1)} px</small>`],
+    ["Diffraction", `${ratio.toFixed(1)}× c <small style="color:${ratio <= 1 ? "var(--ok)" : "var(--warn)"}">${ratio <= 1 ? "under" : ratio <= 2 ? "starting" : "dominant"}</small>`],
+    ["Close focus", `${fmtM(mfdMm)} <small>${u.name}</small>`],
+    ["FF equivalent", `${Math.round(F * FF_DIAG / diag)} <small>mm</small>`]
+  ].map(([k, v]) => `<div class="stat"><span class="k">${k}</span><span class="v">${v}</span></div>`).join("");
+
+  drawDof(near, s, far, ratio, mfdMm);
+  drawTable(c);
+}
+
+function drawDof(near, s, far, ratio, mfdMm) {
+  const svg = $("dof");
+  const W = 640, Hh = 98, padL = 14, padR = 30, y = 30, h = 22;
+  const u = UNIT(), ft = u.name === "ft";
+  const lo = Math.log10(ft ? 1 : 0.3), hi = Math.log10(ft ? 3000 : 1000);
+  const x = d => padL + (Math.log10(Math.min(Math.max(d, 10 ** lo), 10 ** hi)) - lo) / (hi - lo) * (W - padL - padR);
+  const xInf = W - padR + 14;
+  const nx = x(near / u.per), fx = far === Infinity ? xInf : x(far / u.per), sx = x(s / u.per);
+  let out = `<rect x="${padL}" y="${y}" width="${xInf - padL}" height="${h}" fill="var(--panel)" stroke="var(--line)"/>`;
+  const mx = x(mfdMm / u.per);
+  if (mx > padL + 1) {
+    out += `<rect x="${padL}" y="${y}" width="${mx - padL}" height="${h}" fill="var(--line)" opacity="0.7"/>`;
+    out += `<line x1="${mx}" y1="${y - 4}" x2="${mx}" y2="${y + h + 4}" stroke="var(--muted)" stroke-dasharray="3 3"/>`;
+    if (mx - padL > 60) out += `<text x="${(padL + mx) / 2}" y="${y + h / 2 + 4}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">closer than focus</text>`;
+  }
+  out += `<rect x="${nx}" y="${y}" width="${Math.max(fx - nx, 1)}" height="${h}" fill="var(--accent-soft)" stroke="var(--accent)"/>`;
+  if (ratio > 1) {
+    // diffraction softens every distance equally, so it covers the whole track
+    const strong = ratio > 2;
+    out += `<defs><pattern id="hatch" width="6" height="6" patternUnits="userSpaceOnUse" patternTransform="rotate(45)"><line x1="0" y1="0" x2="0" y2="6" stroke="var(--warn)" stroke-width="${strong ? 2 : 1}"/></pattern></defs>`;
+    out += `<rect x="${padL}" y="${y}" width="${xInf - padL}" height="${h}" fill="url(#hatch)" opacity="${strong ? 0.7 : 0.4}"/>`;
+    out += `<text x="${padL}" y="${Hh - 2}" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--warn)">diffraction ${ratio.toFixed(1)}× c, softens all distances${strong ? " (dominant)" : ""}</text>`;
+  }
+  out += `<line x1="${sx}" y1="${y - 8}" x2="${sx}" y2="${y + h + 8}" stroke="var(--accent)" stroke-width="2.5"/>`;
+  (ft ? [2, 5, 10, 20, 50, 100, 200, 500, 1000] : [0.5, 1, 2, 5, 10, 20, 50, 100, 500]).forEach(m => {
+    const tx = x(m);
+    out += `<line x1="${tx}" y1="${y + h}" x2="${tx}" y2="${y + h + 5}" stroke="var(--muted)"/>`;
+    out += `<text x="${tx}" y="${y + h + 18}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--muted)">${m}</text>`;
+  });
+  out += `<text x="${xInf}" y="${y + h + 18}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="12" fill="var(--muted)">∞</text>`;
+  out += `<text x="${nx}" y="${y - 12}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--fg)">${fmtM(near)} ${u.name}</text>`;
+  if (far !== Infinity) out += `<text x="${fx}" y="${y - 12}" text-anchor="middle" font-family="IBM Plex Mono, monospace" font-size="11" fill="var(--fg)">${fmtM(far)} ${u.name}</text>`;
+  out += `<text x="${W - 4}" y="${Hh - 2}" text-anchor="end" font-family="IBM Plex Mono, monospace" font-size="10" fill="var(--muted)">${u.long}</text>`;
+  svg.setAttribute("viewBox", `0 0 ${W} ${Hh}`);
+  svg.innerHTML = out;
+}
+
+function drawTable(c) {
+  const stops = allStops();
+  const t = $("table");
+  const first = stops.findIndex(n => airy(n) > 2 * c);
+  let braceRow = "";
+  if (first >= 0) {
+    const span = stops.length - first;
+    braceRow = `<tr class="brace-row"><th></th>${first ? `<th colspan="${first}"></th>` : ""}` +
+      `<th colspan="${span}" class="brace-cell"><span class="brace-label" title="Diffraction blur over 2× the circle of confusion from f/${fmtN(stops[first])}">Blur zone</span><span class="brace" aria-hidden="true"></span></th></tr>`;
+  }
+  t.querySelector("thead").innerHTML = braceRow + `<tr><th>Lens</th>${stops.map((n, i) => `<th${first >= 0 && i >= first ? ' class="in-blur"' : ""}>f/${fmtN(n)}</th>`).join("")}</tr>`;
+  t.querySelector("tbody").innerHTML = Object.entries(LENSES).map(([k, l]) => {
+    const ls = stopList(l);
+    const cells = stops.map(n => {
+      if (!ls.some(m => Math.abs(m - n) < 0.01)) return `<td><span class="na">·</span></td>`;
+      const H = hyper(l.efl, n, c);
+      const sel = k === state.lens && Math.abs(n - state.N) < 0.01;
+      const r = airy(n) / c;
+      const d = Math.min(Math.max((r - 0.5) / 3.5, 0), 1) * 55; // haze grows smoothly with the Airy-disk ratio
+      const cls = sel ? "sel" : d > 0 ? "diffg" : "";
+      const style = !sel && d > 0 ? ` style="--d:${d.toFixed(0)}%"` : "";
+      const isMax = Math.abs(n - l.max) < 0.01;
+      return `<td><button type="button" data-lens="${k}" data-n="${n}" class="${cls}${isMax ? " max" : ""}"${style} aria-label="${l.name} f/${fmtN(n)}${isMax ? " (widest)" : ""}: ${fmtM(H)} ${UNIT().long}">${fmtM(H)}</button></td>`;
+    }).join("");
+    return `<tr><td>${l.name}<small>f/${fmtN(l.max)} · close ${fmtM(closeFocus(l) * 1000)} ${UNIT().name}</small></td>${cells}</tr>`;
+  }).join("");
+}
+
+$("table").addEventListener("click", e => {
+  const bt = e.target.closest("button[data-lens]");
+  if (!bt) return;
+  state.lens = bt.dataset.lens; state.N = +bt.dataset.n; render();
+});
+$("controls").addEventListener("change", e => {
+  const t = e.target;
+  if (t.name === "back") state.back = t.value;
+  if (t.name === "coc") state.coc = t.value;
+  if (t.name === "wave") state.wave = t.value;
+  if (t.name === "stops") state.stops = t.value;
+  if (t.id === "hpf40") state.hpf40 = t.checked;
+  if (t.name === "units" && t.value !== state.units) {
+    const toFt = t.value === "ft";
+    if (state.focus) { state.focus = +(state.focus * (toFt ? 1000 / 304.8 : 304.8 / 1000)).toFixed(1); $("focus").value = state.focus; }
+    state.units = t.value;
+  }
+  render();
+});
+$("pxMult").addEventListener("input", e => { state.pxMult = +e.target.value; render(); });
+$("customCoc").addEventListener("input", e => { const v = +e.target.value; if (v >= 2 && v <= 100) { state.custom = v; render(); } });
+$("focus").addEventListener("input", e => { const v = +e.target.value; state.focus = v >= 0.3 ? v : null; render(); });
+
+render();
+</script>
+
+</body>
+</html>
